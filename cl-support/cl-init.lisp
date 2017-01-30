@@ -6,6 +6,10 @@
 ;;; All of the files loaded here are assumed to be regular Common Lisp
 ;;; files.
 
+(eval-when (:load-toplevel :compile-toplevel :execute)
+  (unless (find-package "MUMBLE-IMPLEMENTATION")
+    (make-package "MUMBLE-IMPLEMENTATION" :use '("LISP"))))
+
 (in-package "MUMBLE-IMPLEMENTATION")
 
 
@@ -114,13 +118,14 @@
 ;;; Environment variables in pathnames may not be supported by the
 ;;; host Lisp.
 
-#-mcl (progn
-        (defvar *support-directory* "cl-support/")
-        (defvar *support-binary-directory*
-          (concatenate 'string 
-                       *support-directory* 
-                       *lisp-implementation-name*
-                       "/")))
+#-mcl
+(progn
+  (defvar *support-directory* "cl-support/")
+  (defvar *support-binary-directory*
+    (concatenate 'string 
+		 *support-directory* 
+		 *lisp-implementation-name*
+		 "/")))
 
 (defun load-compiled-cl-file (filename)
   (let ((source-file (concatenate 'string
@@ -131,11 +136,14 @@
 				  *support-binary-directory*
 				  filename
 				  *lisp-binary-file-type*)))
+    (format t "~&CWD: ~a~%" (truename "."))
     (if (or (not (probe-file binary-file))
 	    (< (file-write-date binary-file) (file-write-date source-file)))
 	(compile-file source-file :output-file (merge-pathnames binary-file)))
     (load binary-file)))
 
+(eval-when (:load-toplevel :compile-toplevel :execute)
+  (trace load-compiled-cl-file))
 
 ;;; Do NOT change the load order of these files.
 

@@ -412,7 +412,7 @@
 		    ;; the BOA constructor.  Bogus!!!
 		    ;; If you do this in WCL, it will just quietly ignore
 		    ;; the BOA.
-		    #-(or akcl wcl) (:constructor nil)
+		    #-(or cmu akcl wcl) (:constructor nil)
 		    (:constructor ,(td-%constructor td) ,(make-boa-args slots))
 		    (:predicate ,predicate)
 		    (:copier    nil))

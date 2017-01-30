@@ -8,20 +8,20 @@ setenv HASKELL_LIBRARY $HASKELL/progs/lib
 
 # You may need to change this to point at the appropriate subdirectory,
 # depending on which Lisp is being used.
-setenv PRELUDEBIN $PRELUDE/lucid
-#setenv PRELUDEBIN $PRELUDE/cmu
+#setenv PRELUDEBIN $PRELUDE/lucid
+setenv PRELUDEBIN $PRELUDE/cmu
 
 # You may need to change this to point at the appropriate subdirectory,
 # depending on which Lisp is being used.
-setenv LIBRARYBIN $HASKELL_LIBRARY/bin/lucid
-#setenv LIBRARYBIN $HASKELL_LIBRARY/bin/cmu
+#setenv LIBRARYBIN $HASKELL_LIBRARY/bin/lucid
+setenv LIBRARYBIN $HASKELL_LIBRARY/bin/cmu
 
 # You may need to change this to point at the appropriate executable,
 # depending on which Lisp is being used.
-setenv HASKELLPROG $HASKELL/bin/haskell
-#setenv HASKELLPROG $HASKELL/bin/cmu-haskell
+#setenv HASKELLPROG $HASKELL/bin/haskell
+setenv HASKELLPROG $HASKELL/bin/cmu-haskell
 
 # You only need this next definition if you are using the CMU CL version
 # of haskell and you have /tmp mounted on a tmpfs file system (it won't
 # be able to initialize itself otherwise).
-setenv CMUCL_EMPTYFILE /var/tmp/empty
+#setenv CMUCL_EMPTYFILE /var/tmp/empty

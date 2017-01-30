@@ -104,7 +104,7 @@
 
 
 ;;; AKCL's SETF brokenly tries to macroexpand the place
-;;; form before looking for a define-setf-method.  Redefine the
+;;; form before looking for a define-setf-expander  Redefine the
 ;;; internal function to do the right thing.
 
 #+akcl
@@ -120,7 +120,7 @@
 
 ;;; Allegro has renamed this stuff as per ANSI CL.
 
-#+allegro
+#+(or cmu allegro)
 (eval-when (eval compile load)
   (setf (macro-function 'define-setf-method)
 	(macro-function 'define-setf-expander))
@@ -147,7 +147,7 @@
 (define-mumble-macro mumble::dynamic (name)
   `(locally (declare (special ,name)) ,name))
 
-(define-setf-method mumble::dynamic (name)
+(define-setf-expander mumble::dynamic (name)
   (let ((store  (gensym)))
     (values nil
 	    nil
@@ -441,7 +441,7 @@
 (define-mumble-import last)
 (define-mumble-import butlast)
 
-(define-setf-method mumble::list-ref (list n)
+(define-setf-expander mumble::list-ref (list n)
   (get-setf-method `(nth ,n ,list)))
 
 (define-mumble-function-inline mumble::memq (object list)
@@ -566,7 +566,7 @@
 (define-mumble-function-inline mumble::string-ref (x n)
   (the character (schar (the simple-string x) (the fixnum n))))
 
-(define-setf-method mumble::string-ref (string n)
+(define-setf-expander mumble::string-ref (string n)
   (get-setf-method `(schar ,string ,n)))
 
 (define-mumble-synonym mumble::string=? string=)
@@ -628,7 +628,7 @@
 (define-mumble-function-inline mumble::vector-ref (x n)
   (svref (the simple-vector x) (the fixnum n)))
 
-(define-setf-method mumble::vector-ref (vector n)
+(define-setf-expander mumble::vector-ref (vector n)
   (get-setf-method `(svref ,vector ,n)))
 
 (define-mumble-function-inline mumble::vector->list (vector)
@@ -722,7 +722,7 @@
 (define-mumble-function-inline mumble::table-entry (table key)
   (gethash key table))
 
-(define-setf-method mumble::table-entry (table key)
+(define-setf-expander mumble::table-entry (table key)
   (get-setf-method `(gethash ,key ,table)))
 
 (define-mumble-synonym mumble::table-for-each maphash)
