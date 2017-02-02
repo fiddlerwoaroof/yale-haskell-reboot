@@ -1,1 +1,4 @@
 *.sse2f
+*.core
+*-hci.scm
+[#]*[#]
