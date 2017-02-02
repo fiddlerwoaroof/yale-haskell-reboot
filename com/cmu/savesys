@@ -5,7 +5,7 @@
 #
 cd $Y2
 setenv PRELUDEBIN $Y2/progs/prelude/cmu
-if !(-e $PRELUDEBIN/Prelude.sparcf) then
+if !(-e $PRELUDEBIN/Prelude.x86f) then
   echo "Build the prelude first, stupid..."
   exit
   endif

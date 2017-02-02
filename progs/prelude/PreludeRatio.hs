@@ -59,12 +59,13 @@ instance  (Integral a)	=> Enum (Ratio a)  where
     enumFrom		=  iterate ((+)1)
     enumFromThen n m	=  iterate ((+)(m-n)) n
 
-instance  (Integral a) => Text (Ratio a)  where
+instance  (Integral a) => Read (Ratio a)  where
     readsPrec p  =  readParen (p > prec)
 			      (\r -> [(x%y,u) | (x,s)   <- reads r,
 					        ("%",t) <- lex s,
 						(y,u)   <- reads t ])
 
+instance  (Integral a) => Show (Ratio a)  where
     showsPrec p (x:%y)	=  showParen (p > prec)
     	    	    	       (shows x . showString " % " . shows y)
 

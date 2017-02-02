@@ -7,6 +7,7 @@
 ;;; files.
 
 (eval-when (:load-toplevel :compile-toplevel :execute)
+  (ext:unlock-all-packages)
   (unless (find-package "MUMBLE-IMPLEMENTATION")
     (make-package "MUMBLE-IMPLEMENTATION" :use '("LISP"))))
 
@@ -21,7 +22,7 @@
 
 
 ;;; CMU CL prints too many compiler progress messages.
-#+cmu
+#+(and null cmu)
 (progn
   (setq *compile-print* '())
   (setq *load-verbose* t)

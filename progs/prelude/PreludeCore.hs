@@ -198,12 +198,9 @@ defaultEnumFromThenTo n n' m
 type  ReadS a = String -> [(a,String)]
 type  ShowS   = String -> String
 
-class  Text a  where
+class  Read a  where
     readsPrec :: Int -> ReadS a
-    showsPrec :: Int -> a -> ShowS
     readList  :: ReadS [a]
-    showList  :: [a] -> ShowS
-
     readList    = readParen False (\r -> [pr | ("[",s)	<- lex r,
 					       pr	<- readl s])
 	          where readl  s = [([],t)   | ("]",t)  <- lex s] ++
@@ -213,6 +210,11 @@ class  Text a  where
 			           [(x:xs,v) | (",",t)  <- lex s,
 					       (x,u)	<- reads t,
 					       (xs,v)   <- readl' u]
+
+class  Show a  where
+    showsPrec :: Int -> a -> ShowS
+    showList  :: [a] -> ShowS
+
     showList []	= showString "[]"
     showList (x:xs)
 		= showChar '[' . shows x . showl xs
@@ -232,17 +234,20 @@ class  Binary a  where
 
 -- data  ()  =  ()  deriving (Eq, Ord, Ix, Enum, Binary)
 
-instance  Text ()  where
+instance  Read ()  where
     readsPrec p    = readParen False
     	    	    	    (\r -> [((),t) | ("(",s) <- lex r,
 					     (")",t) <- lex s ] )
+instance  Show ()  where
     showsPrec p () = showString "()"
 
 
 -- Binary type
 
-instance  Text Bin  where
+instance  Read Bin  where
     readsPrec p s  =  error "readsPrec{PreludeText}: Cannot read Bin."
+
+instance  Show Bin  where
     showsPrec p b  =  showString "<<Bin>>"
 
 
@@ -288,13 +293,10 @@ charEnumFromThen c c'	=  map chr [ord c, ord c' .. ord lastChar]
 {-# charEnumFrom :: Inline #-}
 {-# charEnumFromThen :: Inline #-}
 
-instance  Text Char  where
+instance  Read Char  where
     readsPrec p      = readParen False
     	    	    	    (\r -> [(c,t) | ('\'':s,t)<- lex r,
 					    (c,_)     <- readLitChar s])
-
-    showsPrec p '\'' = showString "'\\''"
-    showsPrec p c    = showChar '\'' . showLitChar c . showChar '\''
 
     readList = readParen False (\r -> [(l,t) | ('"':s, t) <- lex r,
 					       (l,_)      <- readl s ])
@@ -302,6 +304,10 @@ instance  Text Char  where
 		     readl ('\\':'&':s)	= readl s
 		     readl s		= [(c:cs,u) | (c ,t) <- readLitChar s,
 						      (cs,u) <- readl t	      ]
+
+instance  Show Char  where
+    showsPrec p '\'' = showString "'\\''"
+    showsPrec p c    = showChar '\'' . showLitChar c . showChar '\''
 
     showList cs = showChar '"' . showl cs
 		 where showl ""       = showChar '"'
@@ -418,12 +424,14 @@ numericEnumFromThen n m	=  iterate (+(m-n)) n
 {-# numericEnumFromThen :: Inline #-}
 
 
-instance  Text Int  where
+instance  Read Int  where
     readsPrec p		= readSigned readDec
+instance  Show Int  where
     showsPrec   	= showSigned showInt
 
-instance  Text Integer  where
+instance  Read Integer  where
     readsPrec p 	= readSigned readDec
+instance  Show Integer  where
     showsPrec		= showSigned showInt
 
 
@@ -584,12 +592,14 @@ instance  Enum Double  where
     {-# enumFromTo :: Inline #-}
     {-# enumFromThenTo :: Inline #-}
 
-instance  Text Float  where
+instance  Read Float  where
     readsPrec p		= readSigned readFloat
+instance  Show Float  where
     showsPrec   	= showSigned showFloat
 
-instance  Text Double  where
+instance  Read Double  where
     readsPrec p		= readSigned readFloat
+instance  Show Double  where
     showsPrec   	= showSigned showFloat
 
 
@@ -597,8 +607,9 @@ instance  Text Double  where
 
 -- data  [a]  =  [] | a : [a]  deriving (Eq, Ord, Binary)
 
-instance  (Text a) => Text [a]  where
+instance  (Read a) => Read [a]  where
     readsPrec p		= readList
+instance  (Show a) => Show [a]  where
     showsPrec p		= showList
 
 
@@ -621,8 +632,9 @@ instance  (Text a, Text b) => Text (a,b)  where
 
 -- Functions
 
-instance  Text (a -> b)  where
+instance  Read (a -> b)  where
     readsPrec p s  =  error "readsPrec{PreludeCore}: Cannot read functions."
+instance  Show (a -> b)  where
     showsPrec p f  =  showString "<<function>>"
 
 -- Support for class Bin
@@ -774,7 +786,7 @@ instance (Text a1, Text a2, Text a3) => Text (a1,a2,a3) where
 instance (Eq a1, Eq a2, Eq a3, Eq a4) => Eq (a1,a2,a3,a4) where
   (a1,a2,a3,a4) == (z1,z2,z3,z4) = a1==z1 && a2==z2 && a3==z3 && a4 == z4
 
-instance (Text a1, Text a2, Text a3, Text a4) => Text (a1,a2,a3,a4) where
+instance (Read a1, Read a2, Read a3, Read a4) => Read (a1,a2,a3,a4) where
   readsPrec p = readParen False
                           (\r0 -> [((a1,a2,a3,a4), w) |
                                                   ("(",r1) <- lex r0,
@@ -786,15 +798,20 @@ instance (Text a1, Text a2, Text a3, Text a4) => Text (a1,a2,a3,a4) where
 	                                          (",",r7) <- lex r6,
 						  (a4,r8)  <- reads r7,
                                                   (")",w)  <- lex r8 ])
+
+instance (Show a1, Show a2, Show a3, Show a4) => Show (a1,a2,a3,a4) where
   showsPrec p (a1,a2,a3,a4) = 
                         showChar '(' . shows a1 . showChar ',' .
                                        shows a2 . showChar ',' .
                                        shows a3 . showChar ',' .
                                        shows a4 . showChar ')'
 
-instance (Text a1, Text a2, Text a3, Text a4, Text a5) =>
-      Text (a1,a2,a3,a4,a5) where
+instance (Read a1, Read a2, Read a3, Read a4, Read a5) =>
+      Read (a1,a2,a3,a4,a5) where
   readsPrec p = error "Read of 5 tuples not implemented"
+
+instance (Show a1, Show a2, Show a3, Show a4, Show a5) =>
+      Show (a1,a2,a3,a4,a5) where
   showsPrec p (a1,a2,a3,a4,a5) = 
                         showChar '(' . shows a1 . showChar ',' .
                                        shows a2 . showChar ',' .
@@ -802,9 +819,12 @@ instance (Text a1, Text a2, Text a3, Text a4, Text a5) =>
                                        shows a4 . showChar ',' .
                                        shows a5 . showChar ')'
 
-instance (Text a1, Text a2, Text a3, Text a4, Text a5, Text a6) =>
-      Text (a1,a2,a3,a4,a5,a6) where
+instance (Read a1, Read a2, Read a3, Read a4, Read a5, Read a6) =>
+      Read (a1,a2,a3,a4,a5,a6) where
   readsPrec p = error "Read of 6 tuples not implemented"
+
+instance (Show a1, Show a2, Show a3, Show a4, Show a5, Show a6) =>
+      Show (a1,a2,a3,a4,a5,a6) where
   showsPrec p (a1,a2,a3,a4,a5,a6) = 
                         showChar '(' . shows a1 . showChar ',' .
                                        shows a2 . showChar ',' .

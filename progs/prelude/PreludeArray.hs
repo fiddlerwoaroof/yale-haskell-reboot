@@ -185,12 +185,13 @@ instance  (Ix a, Eq b)  => Eq (Array a b)  where
 instance  (Ix a, Ord b) => Ord (Array a b)  where
     a <=  a'  	    	=  assocs a <=  assocs a'
 
-instance  (Ix a, Text a, Text b) => Text (Array a b)  where
+instance  (Ix a, Show a, Show b) => Show (Array a b)  where
     showsPrec p a = showParen (p > 9) (
 		    showString "array " .
 		    shows (bounds a) . showChar ' ' .
 		    shows (assocs a)                  )
 
+instance  (Ix a, Read a, Read b) => Read (Array a b)  where
     readsPrec p = readParen (p > 9)
 	   (\r -> [(array b as, u) | ("array",s) <- lex r,
 				     (b,t)       <- reads s,
