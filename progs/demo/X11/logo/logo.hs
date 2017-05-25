@@ -188,10 +188,10 @@ data Value         = Null
                    | List ListType
                    | Boolean Bool
                    | GoodBye
-                     deriving Text
+                     deriving (Read,Show)
 
 data ListType      = NullList | Value :* ListType
-                     deriving Text
+                     deriving (Read,Show)
 
 
 type EvalFailType  = Error -> StateType -> IO ()
@@ -805,7 +805,7 @@ import Evaluator
 
 
 data LexState = Lexer | LexerBracket Int LexState | LexerParen Int LexState
-                deriving Text
+                deriving (Read,Show)
 
 type LexerType = [Char] -> ([Token] , LexState)
 
@@ -814,7 +814,7 @@ data Token   = OpenBracket
              | OpenParen 
              | CloseParen
              | QuotedWord WordType
-             | Normal WordType     deriving (Text,Eq)
+             | Normal WordType     deriving (Read,Show,Eq)
 
 
 -- call appropriate lex procedure depending upon the current lex state
@@ -976,7 +976,7 @@ type ConditionType   = AST
 type ParseArgs       = [AST]
 
 data ArgType         = Val Value | QuotedWordArg WordType
-                       deriving Text
+                       deriving (Read,Show)
 
 data AST             = ParseList ListType
                      | If ConditionType ClauseType ClauseType
@@ -988,10 +988,10 @@ data AST             = ParseList ListType
                      | Print ParseArgs
                      | Argument ArgType
                      | Graphics CommandName ParseArgs
-                     | Command CommandName ParseArgs      deriving Text
+                     | Command CommandName ParseArgs      deriving (Read,Show)
 
 data LoopType        = Do | While | Repeat
-                       deriving Text
+                       deriving (Read,Show)
 
 type ParseFailType   = Error -> InputState -> IO ()
 type ParseType       = [Token] -> InputState -> ParseFailType ->

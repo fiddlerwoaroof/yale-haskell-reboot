@@ -17,11 +17,12 @@ $CMUCL <<EOF
 ;; If you want to recompile
 ;; everything from scratch, execute the "clean" script first, or
 ;; else use the "compile" script to do this.
-(proclaim '(optimize (speed 3) (safety 0) (debug 0) (ext:inhibit-warnings 3)))
+(proclaim '(optimize (speed 0) (safety 0) (debug 3) (ext:inhibit-warnings 0)))
+(ql:quickload :mumble)
 (load "cl-support/cl-init")
 ;; Use the same compiler settings for processing the prelude.
 (in-package :mumble-user)
-(setf *printers* '(phase-time dump-stat))
+(setf *printers* '(phase-time dump-stat reading parse))
 (setf *optimizers* *all-optimizers*)
 ;; The compiler barfs while compiling the interface file for the prelude,
 ;; so set the flag for writing it as a source file.

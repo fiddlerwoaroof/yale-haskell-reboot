@@ -16,7 +16,7 @@ infixl 9  !
 infixl 9  //
 infix  1  :=
 
-data  Assoc a b =  a := b  deriving (Eq, Ord, Ix, Text, Binary)
+data  Assoc a b =  a := b  deriving (Eq, Ord, Ix, Read, Show, Binary)
 data  (Ix a)    => Array a b = MkArray (a,a) {-#STRICT#-}
                                        (Vector (Box b)) {-#STRICT#-}
 				       deriving ()

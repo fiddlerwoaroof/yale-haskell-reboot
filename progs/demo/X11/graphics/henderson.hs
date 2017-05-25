@@ -17,7 +17,7 @@ data Picture = Nil
 	     | File String
 	     | Overlay Picture Picture
 	     | Grid Int Int SegList
-	     deriving Text
+	     deriving (Read,Show)
 
 data Plot = Plot Picture VTriple
           | Union Plot Plot

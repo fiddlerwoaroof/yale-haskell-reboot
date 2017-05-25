@@ -13,7 +13,7 @@
     (compute-di-fixpoint insts)
     (dolist (inst insts)
       (when (instance-ok? inst)
-        (create-instance-fns inst)
+	(create-instance-fns inst)
 	(push inst (module-instance-defs
 		    (table-entry *modules*
 				 (def-module (instance-algdata inst)))))))))
@@ -34,12 +34,15 @@
       (dolist (class (algdata-deriving alg))
 	 (cond ((memq class (list (core-symbol "Eq")
 				  (core-symbol "Ord")
-				  (core-symbol "Text")
+				  (core-symbol "Show")
+				  (core-symbol "Read")
 				  (core-symbol "Binary")))
 		(setf insts (add-derivable-instance insts alg class '#f)))
 	       ((eq? class *printer-class*)
 		(setf insts (add-derivable-instance
-			     insts alg (core-symbol "Text") '#t)))
+			     insts alg (core-symbol "Read") '#t))
+		(setf insts (add-derivable-instance
+			     insts alg (core-symbol "Show") '#t)))
 	       ((eq? class (core-symbol "Ix"))
 		(if (or (algdata-enum? alg)
 			(algdata-tuple? alg))
@@ -93,7 +96,7 @@
      the deriving clause is being ignored."
     alg cls))
 
-;;; This updates all instance contexts for an algdata.  Each derivable
+;;; This updates all instance contexts for an algdata.	Each derivable
 ;;; instance generates a recursive context for every field.  If a
 ;;; component cannot satisfy the desired context, the ok? field is set to
 ;;; #f to mark the instance as bogus.
@@ -135,7 +138,7 @@
 	 (propagate-type-context inst class (expand-synonym type)))
 	(else
 	 (let* ((algdata (tycon-def type))  ; must be a algdata
-	        (args (tycon-args type))
+		(args (tycon-args type))
 		(new-inst (lookup-instance algdata class)))
 	   (cond ((or (eq? new-inst '#f)
 		      (not (instance-ok? new-inst)))
@@ -209,7 +212,7 @@
   (if (tyvar? type)
       (tuple-2-2 (assq (tyvar-name type) alist))
       (make tycon (def (tycon-def type))
-	          (name (tycon-name type))
+		  (name (tycon-name type))
 		  (args (map (lambda (ty)
 			       (copy-synonym-body ty alist))
 			     (tycon-args type))))))
@@ -227,7 +230,9 @@
 	   (add-instance inst (ix-fns alg)))
 	  ((eq? class (core-symbol "Enum"))
 	   (add-instance inst (enum-fns alg)))
-	  ((eq? class (core-symbol "Text"))
+	  ((eq? class (core-symbol "Show"))
+	   (add-instance inst (text-fns alg (instance-suppress-readers? inst))))
+	  ((eq? class (core-symbol "Read"))
 	   (add-instance inst (text-fns alg (instance-suppress-readers? inst))))
 	  ((eq? class (core-symbol "Binary"))
 	   (add-instance inst (binary-fns alg))))))

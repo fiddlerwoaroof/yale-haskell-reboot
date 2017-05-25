@@ -5,7 +5,7 @@ import PreludeIOMonad
 
 {-#Prelude#-}  -- Indicates definitions of compiler prelude symbols
 
-data IOResponse a = Succ a | Fail String deriving Text
+data IOResponse a = Succ a | Fail String deriving (Read,Show)
 
 exec :: ([Response] -> [Request]) -> IO ()
 {-

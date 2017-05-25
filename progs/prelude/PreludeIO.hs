@@ -77,14 +77,14 @@ data Request =	-- file system requests:
 			| GetProgName
 			| GetEnv        String
 			| SetEnv        String String
-		deriving Text
+		deriving (Read,Show)
 
 data Response =		  Success
 			| Str String 
 			| StrList [String]
 			| Bn  Bin
 			| Failure IOError
-		deriving Text
+		deriving (Read,Show)
 
 -}
 
@@ -93,7 +93,7 @@ data IOError =		  WriteError   String
 			| SearchError  String
 			| FormatError  String
 			| OtherError   String
-		deriving Text
+		deriving (Read,Show)
 
 -- Continuation-based I/O:
 
@@ -221,9 +221,9 @@ exit err	= appendChan stderr (msg ++ "\n") abort done
 		      			  FormatError s -> s
 		      			  OtherError s  -> s
 
-print		:: (Text a) => a -> Dialogue
+print		:: (Show a) => a -> Dialogue
 print x		=  appendChan stdout (show x) exit done
-prints          :: (Text a) => a -> String -> Dialogue
+prints          :: (Show a) => a -> String -> Dialogue
 prints x s	=  appendChan stdout (shows x s) exit done
 
 interact	:: (String -> String) -> Dialogue

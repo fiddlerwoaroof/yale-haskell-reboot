@@ -15,7 +15,8 @@ module PreludeCore (
 	      encodeFloat, decodeFloat, exponent, significand, scaleFloat),
     Ix(range, index, inRange),
     Enum(enumFrom, enumFromThen, enumFromTo, enumFromThenTo),
-    Text(readsPrec, showsPrec, readList, showList), ReadS(..), ShowS(..),
+    Read(readsPrec, readList), ReadS(..),
+    Show(showsPrec, showList), ShowS(..),
     Binary(readBin, showBin),
 --  List type: [_]((:), [])
 --  Tuple types: (_,_), (_,_,_), etc.
@@ -82,7 +83,7 @@ class  (Eq a) => Ord a  where
 
 -- Numeric classes
 
-class  (Eq a, Text a) => Num a  where
+class  (Eq a, Read a, Show a) => Num a  where
     (+), (-), (*)	:: a -> a -> a
     negate		:: a -> a
     abs, signum		:: a -> a
@@ -110,50 +111,50 @@ class  (Real a, Ix a) => Integral a  where
 
 class  (Num a) => Fractional a  where
     (/)			:: a -> a -> a
-    recip		:: a -> a
-    fromRational	:: Rational -> a
+    recip              :: a -> a
+    fromRational       :: Rational -> a
 
-    recip x		=  1 / x
+    recip x            =  1 / x
 
 class  (Fractional a) => Floating a  where
-    pi			:: a
-    exp, log, sqrt	:: a -> a
-    (**), logBase	:: a -> a -> a
-    sin, cos, tan	:: a -> a
-    asin, acos, atan	:: a -> a
-    sinh, cosh, tanh	:: a -> a
+    pi                 :: a
+    exp, log, sqrt     :: a -> a
+    (**), logBase      :: a -> a -> a
+    sin, cos, tan      :: a -> a
+    asin, acos, atan   :: a -> a
+    sinh, cosh, tanh   :: a -> a
     asinh, acosh, atanh :: a -> a
 
-    x ** y		=  exp (log x * y)
-    logBase x y		=  log y / log x
-    sqrt x		=  x ** 0.5
-    tan  x		=  sin  x / cos  x
-    tanh x		=  sinh x / cosh x
+    x ** y             =  exp (log x * y)
+    logBase x y                =  log y / log x
+    sqrt x             =  x ** 0.5
+    tan  x             =  sin  x / cos  x
+    tanh x             =  sinh x / cosh x
 
 class  (Real a, Fractional a) => RealFrac a  where
-    properFraction	:: (Integral b) => a -> (b,a)
-    truncate, round	:: (Integral b) => a -> b
-    ceiling, floor	:: (Integral b) => a -> b
+    properFraction     :: (Integral b) => a -> (b,a)
+    truncate, round    :: (Integral b) => a -> b
+    ceiling, floor     :: (Integral b) => a -> b
 
-    truncate x		=  m  where (m,_) = properFraction x
-    
-    round x		=  let (n,r) = properFraction x
-    			       m     = if r < 0 then n - 1 else n + 1
-    			   in case signum (abs r - 0.5) of
-    				-1 -> n
-    			 	0  -> if even n then n else m
-    				1  -> m
-    
-    ceiling x		=  if r > 0 then n + 1 else n
-    			   where (n,r) = properFraction x
-    
-    floor x		=  if r < 0 then n - 1 else n
-    			   where (n,r) = properFraction x
+    truncate x         =  m  where (m,_) = properFraction x
+
+    round x            =  let (n,r) = properFraction x
+                              m     = if r < 0 then n - 1 else n + 1
+                          in case signum (abs r - 0.5) of
+                               -1 -> n
+                               0  -> if even n then n else m
+                               1  -> m
+
+    ceiling x          =  if r > 0 then n + 1 else n
+                          where (n,r) = properFraction x
+
+    floor x            =  if r < 0 then n - 1 else n
+                          where (n,r) = properFraction x
 
 class  (RealFrac a, Floating a) => RealFloat a  where
-    floatRadix		:: a -> Integer
-    floatDigits		:: a -> Int
-    floatRange		:: a -> (Int,Int)
+    floatRadix         :: a -> Integer
+    floatDigits                :: a -> Int
+    floatRange         :: a -> (Int,Int)
     decodeFloat		:: a -> (Integer,Int)
     encodeFloat		:: Integer -> Int -> a
     exponent		:: a -> Int
@@ -172,7 +173,7 @@ class  (RealFrac a, Floating a) => RealFloat a  where
 
 -- Index and Enumeration classes
 
-class  (Ord a, Text a) => Ix a  where   -- This is a Yale modification
+class  (Ord a, Read a, Show a) => Ix a  where   -- This is a Yale modification
     range		:: (a,a) -> [a]
     index		:: (a,a) -> a -> Int
     inRange		:: (a,a) -> a -> Bool
@@ -253,7 +254,7 @@ instance  Show Bin  where
 
 -- Boolean type
 
-data  Bool  =  False | True	deriving (Eq, Ord, Ix, Enum, Text, Binary)
+data  Bool  =  False | True	deriving (Eq, Ord, Ix, Enum, Read, Show, Binary)
 
 
 -- Character type
@@ -616,8 +617,7 @@ instance  (Show a) => Show [a]  where
 -- Tuples
 
 -- data  (a,b)  =  (a,b)  deriving (Eq, Ord, Ix, Binary)
-{-
-instance  (Text a, Text b) => Text (a,b)  where
+instance  (Read a, Read b) => Read (a,b)  where
     readsPrec p = readParen False
     	    	    	    (\r -> [((x,y), w) | ("(",s) <- lex r,
 						 (x,t)   <- reads s,
@@ -625,10 +625,10 @@ instance  (Text a, Text b) => Text (a,b)  where
 						 (y,v)   <- reads u,
 						 (")",w) <- lex v ] )
 
+instance  (Show a, Show b) => Show (a,b)  where
     showsPrec p (x,y) = showChar '(' . shows x . showChar ',' .
     	    	    	    	       shows y . showChar ')'
 -- et cetera
--}
 
 -- Functions
 
@@ -706,9 +706,9 @@ instance (Binary a, Binary b, Binary c, Binary d) => Binary (a,b,c,d) where
 -- only tuple instances expliticly provided here are available.
 -- Currently provided:
 
--- 2,3 tuples: all classes (Eq, Ord, Ix, Bin, Text)
--- 4 tuples: Eq, Bin, Text
--- 5, 6 tuples: Text (printing only)
+-- 2,3 tuples: all classes (Eq, Ord, Ix, Bin, Read, Show)
+-- 4 tuples: Eq, Bin, Read, Show
+-- 5, 6 tuples: Read, Show (printing only)
 
 {- 
 rangeSize               :: (Ix a) => (a,a) -> Int
