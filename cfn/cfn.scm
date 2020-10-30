@@ -6,7 +6,7 @@
 
 
 (define-compilation-unit cfn
-  (source-filename "$Y2/cfn/")
+  (source-filename "cfn/")
   (require ast haskell-utils)
   (unit main
 	(source-filename "main.scm"))

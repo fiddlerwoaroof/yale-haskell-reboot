@@ -6,14 +6,14 @@
 ;;; This file must be loaded before compiling the cl-definitions file.
 ;;; However, it is not needed when loading the compiled file.
 
-(in-package "MUMBLE-IMPLEMENTATION")
+(in-package :mumble-implementation)
 
 
 ;;; Use this macro for defining an exported mumble function.
 
 (defmacro define-mumble-function (name &rest stuff)
   `(progn
-     (eval-when (eval compile load) (export (list ',name) "MUMBLE"))
+     (eval-when (:execute :compile-toplevel :load-toplevel) (export (list ',name) "MUMBLE"))
      (defun ,name ,@stuff)))
 
 
@@ -22,10 +22,10 @@
 
 (defmacro define-mumble-function-inline (name &rest stuff)
   `(progn
-     (eval-when (eval compile load) (export (list ',name) "MUMBLE"))
-#+lcl
+     (eval-when (:execute :compile-toplevel :load-toplevel) (export (list ',name) "MUMBLE"))
+     #+lcl
      (lcl:defsubst ,name ,@stuff)
-#-lcl
+     #-lcl
      (progn
        (proclaim '(inline ,name))
        (defun ,name ,@stuff))
@@ -36,7 +36,7 @@
 
 (defmacro define-mumble-macro (name &rest stuff)
   `(progn
-     (eval-when (eval compile load) (export (list ',name) "MUMBLE"))
+     (eval-when (:execute :compile-toplevel :load-toplevel) (export (list ',name) "MUMBLE"))
      (defmacro ,name ,@stuff)))
 
 
@@ -46,8 +46,8 @@
 
 (defmacro define-mumble-import (name)
   `(progn
-     (eval-when (eval compile load) (import (list ',name) "MUMBLE"))
-     (eval-when (eval compile load) (export (list ',name) "MUMBLE"))
+     (eval-when (:execute :compile-toplevel :load-toplevel) (import (list ',name) "MUMBLE"))
+     (eval-when (:execute :compile-toplevel :load-toplevel) (export (list ',name) "MUMBLE"))
      ',name))
 
 
@@ -57,9 +57,10 @@
 
 (defmacro define-mumble-synonym (name cl-name)
   `(progn
-     (eval-when (eval compile load) (export (list ',name) "MUMBLE"))
+     (eval-when (:execute :compile-toplevel :load-toplevel)
+       (export (list ',name) "MUMBLE"))
      (setf (symbol-function ',name) (symbol-function ',cl-name))
-#+lcl
+     #+lcl
      (lcl:def-compiler-macro ,name (&rest args)
        (cons ',cl-name args))
      ',name))
@@ -70,7 +71,7 @@
 
 (defmacro define-mumble-type (name &rest stuff)
   `(progn
-     (eval-when (eval compile load) (export (list ',name) "MUMBLE"))
+     (eval-when (:execute :compile-toplevel :load-toplevel) (export (list ',name) "MUMBLE"))
      (deftype ,name ,@stuff)))
 
 

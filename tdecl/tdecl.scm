@@ -4,7 +4,7 @@
 ;;;
 
 (define-compilation-unit tdecl
-  (source-filename "$Y2/tdecl/")
+  (source-filename "tdecl/")
   (require global)
   (unit type-declaration-analysis
     (source-filename "type-declaration-analysis.scm"))

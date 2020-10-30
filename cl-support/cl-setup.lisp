@@ -12,8 +12,6 @@
 ;;; Programs that use mumble should use the mumble package in place of
 ;;; (rather than in addition to) the CL package.
 
-(unless (find-package "MUMBLE")
-  (make-package "MUMBLE" :use nil))
 
 
 ;;; The actual implementation of the mumble compatibility library happens
@@ -21,10 +19,10 @@
 ;;; all symbols from the MUMBLE package that it references, and rely
 ;;; on the definitional macros to arrange to export them from the MUMBLE
 ;;; package.
-
-(unless (find-package "MUMBLE-IMPLEMENTATION")
-  (make-package "MUMBLE-IMPLEMENTATION" :use '("LISP")))
-
-
-
-
+(cl:in-package :cl-user)
+(cl:defpackage :mumble
+  (:use ))
+(cl:defpackage :mumble-user
+  (:use :mumble))
+(cl:defpackage :mumble-implementation
+  (:use :cl))

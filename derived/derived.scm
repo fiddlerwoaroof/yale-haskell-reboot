@@ -4,7 +4,7 @@
 ;;;
 
 (define-compilation-unit derived
-  (source-filename "$Y2/derived/")
+  (source-filename "derived/")
   (require global)
   (unit derived-instances
     (source-filename "derived-instances.scm"))

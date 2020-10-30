@@ -1,5 +1,5 @@
 (define-compilation-unit haskell-utils
-  (source-filename "$Y2/util/")
+  (source-filename "util/")
   (require global)
   (unit constructors
     (source-filename "constructors.scm"))

@@ -5,7 +5,7 @@
 
 
 (define-compilation-unit runtime
-  (source-filename "$Y2/runtime/")
+  (source-filename "runtime/")
   (require global)
   (unit runtime-utils
 	(source-filename "runtime-utils.scm"))

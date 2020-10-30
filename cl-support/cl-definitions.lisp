@@ -6,7 +6,7 @@
 ;;; You must load cl-setup and cl-support before trying to compile this 
 ;;; file.
 
-(in-package "MUMBLE-IMPLEMENTATION")
+(in-package :mumble-implementation)
 
 
 ;;;=====================================================================
@@ -46,7 +46,7 @@
       `(funcall ,fn ,@args)
       `(funcall (the system::procedure ,fn) ,@args)))
 
-#+(or cmu allegro akcl lispworks mcl)
+#+(or cmu allegro akcl lispworks mcl sbcl)
 (define-mumble-macro mumble::funcall (fn . args)
   `(funcall (the function ,fn) ,@args))
 
@@ -54,7 +54,7 @@
 (define-mumble-macro mumble::funcall (fn . args)
   `(funcall (the lisp:procedure ,fn) ,@args))
 
-#-(or lucid cmu allegro akcl mcl lispworks wcl)
+#-(or lucid cmu allegro akcl mcl lispworks wcl sbcl)
 (missing-mumble-definition mumble::funcall)
 
 
@@ -120,13 +120,12 @@
 
 ;;; Allegro has renamed this stuff as per ANSI CL.
 
-#+(or cmu allegro)
-(eval-when (eval compile load)
+#+(or cmu allegro sbcl)
+(eval-when  (:execute :compile-toplevel :load-toplevel) 
   (setf (macro-function 'define-setf-method)
 	(macro-function 'define-setf-expander))
   (setf (symbol-function 'get-setf-method)
-	(symbol-function 'get-setf-expansion))
-  )
+	(symbol-function 'get-setf-expansion)))
 
 (define-mumble-import let)
 (define-mumble-import let*)
@@ -137,6 +136,7 @@
      (locally ,@body)))
 
 (define-mumble-import flet)
+
 (define-mumble-import labels)
 
 (define-mumble-macro mumble::dynamic-let (bindings &rest body)
@@ -160,13 +160,17 @@
   `(progn ,@body))
 
 (define-mumble-import block)
+
 (define-mumble-import return-from)
 
 (define-mumble-import do)
+
 (define-mumble-import dolist)
+
 (define-mumble-import dotimes)
 
 (define-mumble-import values)
+
 (define-mumble-import multiple-value-bind)
 
 (define-mumble-macro mumble::let/cc (variable &rest body)
@@ -179,12 +183,11 @@
   #'(lambda (&rest values)
       (throw tag (values-list values))))
 
-
 (define-mumble-import unwind-protect)
 
 (define-mumble-import declare)
-(define-mumble-import ignore)
 
+(define-mumble-import ignore)
 
 ;;; IGNORABLE is part of ANSI CL but not implemented by Lucid yet.
 ;;; IGNORE in Lucid seems to behave like what ANSI CL says IGNORABLE 
@@ -195,10 +198,10 @@
   (proclaim '(declaration mumble::ignorable))
   (define-mumble-import mumble::ignorable))
 
-#+(or cmu mcl allegro)
+#+(or cmu mcl allegro sbcl)
 (define-mumble-import cl:ignorable)
 
-#-(or lucid cmu allegro akcl mcl lispworks wcl)
+#-(or lucid cmu allegro akcl mcl lispworks wcl sbcl)
 (missing-mumble-definition mumble::ignorable)
 
 
@@ -225,17 +228,17 @@
 (define-mumble-macro mumble::define-integrable (pattern &rest value)
   (if (consp pattern)
       `(progn
-	 (eval-when (eval compile load)
+	 (eval-when (:execute :compile-toplevel :load-toplevel) 
 	   (proclaim '(inline ,(car pattern))))
 	 (defun ,(car pattern) ,(mung-lambda-list (cdr pattern)) ,@value))
-      `(defconstant ,pattern ,(car value))))
+      `(defparameter ,pattern ,(car value))))
 
 
 (define-mumble-macro mumble::define-syntax (pattern . body)
   `(defmacro ,(car pattern) ,(mung-lambda-list (cdr pattern)) ,@body))
 
 (define-mumble-macro mumble::define-local-syntax (pattern . body)
-  `(eval-when (eval compile)
+  `(eval-when (:execute :compile-toplevel)
      (defmacro ,(car pattern) ,(mung-lambda-list (cdr pattern)) ,@body)))
 
 
@@ -273,31 +276,30 @@
 ;;; of PROCLAIM.
 
 (define-mumble-macro mumble::predefine (pattern)
-  `(eval-when (eval compile)
+  `(eval-when (:execute :compile-toplevel)
      #+allegro (let ((excl::*compiler-environment* nil))
 		 (do-predefine ',pattern))
      #-allegro (do-predefine ',pattern)
      ))
 
-(eval-when (eval compile load)
+(eval-when (:execute :compile-toplevel :load-toplevel) 
   (defun do-predefine (pattern)
     (if (consp pattern)
         (proclaim `(ftype (function ,(mung-decl-lambda-list (cdr pattern)) t)
-			  ,(car pattern)))
-	(proclaim `(special ,pattern))))
+                          ,(car pattern)))
+        (proclaim `(special ,pattern))))
   (defun mung-decl-lambda-list (lambda-list)
     (cond ((consp lambda-list)
-	   (cons 't (mung-decl-lambda-list (cdr lambda-list))))
-	  ((null lambda-list)
-	   '())
-	  (t
-	   '(&rest t))))
-  )
+           (cons 't (mung-decl-lambda-list (cdr lambda-list))))
+          ((null lambda-list)
+           '())
+          (t
+           '(&rest t)))))
 
 
 ;;; CMUCL doesn't complain about function redefinitions, but Lucid does.
 
-#+(or cmu akcl mcl lispworks wcl)
+#+(or cmu akcl mcl lispworks wcl sbcl)
 (define-mumble-macro mumble::redefine (pattern . value)
   `(mumble::define ,pattern ,@value))
 
@@ -311,27 +313,27 @@
   `(let ((excl:*redefinition-warnings*  nil))
      (mumble::define ,pattern ,@value)))
 
-#-(or cmu lucid allegro akcl mcl lispworks wcl)
+#-(or cmu lucid allegro akcl mcl lispworks wcl sbcl)
 (missing-mumble-definition mumble::redefine)
 
 
-#+(or cmu akcl mcl lispworks wcl)
+#+(or cmu akcl mcl lispworks wcl sbcl)
 (define-mumble-macro mumble::redefine-syntax (pattern . body)
   `(mumble::define-syntax ,pattern ,@body))
 
 #+lucid
 (define-mumble-macro mumble::redefine-syntax (pattern . body)
-  `(eval-when (eval compile load)
+  `(eval-when (:execute :compile-toplevel :load-toplevel) 
      (let ((lcl:*redefinition-action*  nil))
        (mumble::define-syntax ,pattern ,@body))))
 
 #+allegro
 (define-mumble-macro mumble::redefine-syntax (pattern . body)
-  `(eval-when (eval compile load)
+  `(eval-when (:execute :compile-toplevel :load-toplevel) 
      (let ((excl:*redefinition-warnings*  nil))
        (mumble::define-syntax ,pattern ,@body))))
-  
-#-(or cmu lucid allegro akcl mcl lispworks wcl)
+
+#-(or cmu lucid allegro akcl mcl lispworks wcl sbcl)
 (missing-mumble-definition mumble::redefine-syntax)
 
 
@@ -342,6 +344,7 @@
 
 (define-mumble-function-inline mumble::eq? (x y)
   (eq x y))
+
 (define-mumble-function-inline mumble::eqv? (x y)
   (eql x y))
 
@@ -374,7 +377,6 @@
 
 (define-mumble-import cons)
 
-
 ;;; Can't import this directly because of type problems.
 
 (define-mumble-synonym mumble::list list)
@@ -384,6 +386,7 @@
        (make-list length :initial-element init)))
 
 (define-mumble-import car)
+
 (define-mumble-import cdr)
 (define-mumble-import caar)
 (define-mumble-import cadr)
@@ -441,13 +444,15 @@
 (define-mumble-import last)
 (define-mumble-import butlast)
 
-(define-setf-expander mumble::list-ref (list n)
-  (get-setf-method `(nth ,n ,list)))
+(define-setf-expander mumble::list-ref (list n &environment e)
+  (get-setf-expansion `(nth ,n ,list) e))
 
 (define-mumble-function-inline mumble::memq (object list)
   (member object list :test #'eq))
+
 (define-mumble-function-inline mumble::memv (object list)
   (member object list))
+
 (define-mumble-function-inline mumble::member (object list)
   (member object list :test #'mumble::equal?))
 
@@ -490,10 +495,10 @@
 (define-mumble-function mumble::gensym (&optional (prefix "G"))
   (gensym prefix))
 
-#+(or cmu allegro mcl lispworks)
+#+(or cmu allegro mcl lispworks sbcl)
 (define-mumble-import gensym)
 
-#-(or lucid akcl wcl cmu allegro mcl lispworks)
+#-(or lucid akcl wcl cmu allegro mcl lispworks sbcl)
 (missing-mumble-definition mumble::gensym)
 
 (define-mumble-function mumble::gensym? (x)
@@ -502,6 +507,7 @@
 
 (defun symbol-append (&rest symbols)
   (intern (apply #'concatenate 'string (mapcar #'symbol-name symbols))))
+
 (define-mumble-import symbol-append)
 
 
@@ -566,8 +572,8 @@
 (define-mumble-function-inline mumble::string-ref (x n)
   (the character (schar (the simple-string x) (the fixnum n))))
 
-(define-setf-expander mumble::string-ref (string n)
-  (get-setf-method `(schar ,string ,n)))
+(define-setf-expander mumble::string-ref (string n &environment e)
+  (get-setf-expansion `(schar ,string ,n) e))
 
 (define-mumble-synonym mumble::string=? string=)
 (define-mumble-synonym mumble::string<? string<)
@@ -722,8 +728,8 @@
 (define-mumble-function-inline mumble::table-entry (table key)
   (gethash key table))
 
-(define-setf-expander mumble::table-entry (table key)
-  (get-setf-method `(gethash ,key ,table)))
+(define-setf-expander mumble::table-entry (table key &environment e)
+  (get-setf-expansion `(gethash ,key ,table) e))
 
 (define-mumble-synonym mumble::table-for-each maphash)
 
@@ -920,7 +926,7 @@
   (declare (ignore options))
   `(lcl:with-deferred-warnings ,@body))
 
-#+(or cmu mcl allegro lispworks)
+#+(or cmu mcl allegro lispworks sbcl)
 (define-mumble-import with-compilation-unit)
 
 #+(or akcl wcl)
@@ -928,7 +934,7 @@
   (declare (ignore options))
   `(progn ,@body))
 
-#-(or lucid allegro cmu akcl mcl lispworks wcl)
+#-(or lucid allegro cmu akcl mcl lispworks wcl sbcl)
 (missing-mumble-definition mumble::with-compilation-unit)
 
 
@@ -1011,6 +1017,7 @@
 ;;; #f = don't mess with optimize settings.
 
 (defvar *code-quality* nil)
+
 (define-mumble-import *code-quality*)
 
 (defun code-quality-hack (q)
@@ -1066,8 +1073,8 @@
 
 ;;; See cl-init.lisp for initialization of *lisp-binary-file-type*.
 
-(defconstant source-file-type ".scm")
-(defconstant binary-file-type *lisp-binary-file-type*)
+(defparameter source-file-type ".scm")
+(defparameter binary-file-type ".fasl")
 (define-mumble-import source-file-type)
 (define-mumble-import binary-file-type)
 
@@ -1079,14 +1086,14 @@
   (mumble::assemble-filename filename filename binary-file-type))
 
 (proclaim '(ftype (function (simple-string) simple-string)
-		  mumble::filename-place
-		  mumble::filename-name
-		  mumble::filename-type
-		  expand-filename))
+            mumble::filename-place
+            mumble::filename-name
+            mumble::filename-type
+            expand-filename))
 
 (proclaim '(ftype (function (simple-string simple-string simple-string)
-			    simple-string)
-		  mumble::assemble-filename))
+                   simple-string)
+            mumble::assemble-filename))
 
 (define-mumble-function mumble::assemble-filename (place name type)
   (concatenate 'string
@@ -1130,17 +1137,16 @@
 (defun expand-filename (filename)
   (declare (simple-string filename))
   (namestring
-    (merge-pathnames
-      (fix-filename-syntax 
-        (if (eql (schar filename 0) #\$)
-	    (let* ((end    (length filename))
-		   (slash  (or (position #\/ filename) end))
-		   (new    (mumble::getenv (subseq filename 1 slash))))
-	      (if new
-		  (concatenate 'string new (subseq filename slash end))
-		  filename))
-	    filename)
-        ))))
+   (merge-pathnames
+    (fix-filename-syntax 
+     (if (eql (schar filename 0) #\$)
+	 (let* ((end    (length filename))
+		(slash  (or (position #\/ filename) end))
+		(new    (mumble::getenv (subseq filename 1 slash))))
+	   (if new
+	       (concatenate 'string new (subseq filename slash end))
+	       filename))
+	 filename)))))
 
 
 ;;; On non-unix machines, may need to change the mumble unix-like filename
@@ -1223,8 +1229,11 @@
     (cdr (assoc string *environment-alist* :test #'string=)))
   )
 
+#+sbcl
+(define-mumble-function mumble::getenv (string)
+  (sb-posix:getenv string))
 
-#-(or lucid allegro cmu akcl mcl lispworks wcl)
+#-(or lucid allegro cmu akcl mcl lispworks wcl sbcl)
 (missing-mumble-definition mumble::getenv)
 
 
@@ -1249,6 +1258,9 @@
 #+cmu
 (define-mumble-synonym mumble::exit  extensions:quit)
 
+#+sbcl
+(define-mumble-synonym mumble::exit  sb-ext:exit)
+
 #+akcl
 (define-mumble-synonym mumble::exit lisp:bye)
 
@@ -1261,8 +1273,8 @@
 #+wcl
 (define-mumble-synonym mumble::exit lisp:quit)
 
-    
-#-(or lucid allegro cmu akcl mcl lispworks wcl)
+
+#-(or lucid allegro cmu akcl mcl lispworks wcl sbcl)
 (missing-mumble-definition mumble::exit)
 
 
@@ -1276,8 +1288,9 @@
 ;;; CMUCL's loader rebinds *readtable* when loading file, so can't
 ;;; setq it here; hack the default readtable instead.
 
-#+(or cmu mcl allegro lispworks)
-(defparameter *mumble-readtable* *readtable*)
+#+(or cmu mcl allegro lispworks sbcl)
+#.(progn (defparameter *mumble-readtable* (copy-readtable *readtable*))
+         (setq *readtable* *mumble-readtable*))
 
 #+(or lucid akcl wcl)
 (progn
@@ -1285,7 +1298,7 @@
   (setq *readtable* *mumble-readtable*)
   )
 
-#-(or lucid allegro cmu akcl mcl lispworks wcl)
+#-(or lucid allegro cmu akcl mcl lispworks wcl sbcl)
 (missing-mumble-definition *mumble-readtable*)
 
 
@@ -1313,7 +1326,7 @@
 ;;; Random stuff
 ;;;=====================================================================
 
-(defconstant mumble::lisp-implementation-name *lisp-implementation-name*)
+(defparameter mumble::lisp-implementation-name "sbcl")
 (define-mumble-import mumble::lisp-implementation-name)
 
 (define-mumble-function mumble::identify-system ()
@@ -1325,7 +1338,7 @@
 	  (or (machine-type)
 	      "Generic Machine")))
 
-(defconstant mumble::left-to-right-evaluation t)
+(defparameter mumble::left-to-right-evaluation t)
 (define-mumble-import mumble::left-to-right-evaluation)
 
 
@@ -1335,7 +1348,7 @@
 #+cmu
 (define-mumble-function mumble::gc-messages (onoff)
   (setf extensions:*gc-verbose* onoff))
-#+(or lispworks akcl wcl mcl)
+#+(or lispworks akcl wcl mcl sbcl)
 (define-mumble-function mumble::gc-messages (onoff)
   onoff)   ; can't figure out if they have a hook or not
 #+lucid
@@ -1344,7 +1357,7 @@
   onoff)
 
 
-#-(or lucid cmu allegro akcl mcl lispworks wcl)
+#-(or lucid cmu allegro akcl mcl lispworks wcl sbcl)
 (missing-mumble-definition mumble::gc-messages)
 
 

@@ -1,3 +1,4 @@
+(in-package :mumble-implementation)
 ;;; cl-structs.lisp -- extended structure definitions
 ;;;
 ;;; author :  Sandra Loosemore
@@ -148,7 +149,7 @@
 ;;; Support for bit slots
 ;;;=====================================================================
 
-(eval-when (eval compile load)
+(eval-when (:execute :compile-toplevel :load-toplevel) 
   (defconstant max-bits (integer-length most-positive-fixnum)))
 
 (defvar *bit-slot-getters* (make-array max-bits))
@@ -382,13 +383,13 @@
   (multiple-value-bind (include type-template slots prefix predicate)
       (parse-struct-fields name fields)
     `(progn
-       (eval-when (eval compile load)
-	 (install-struct-type
-	   ',name
-	   ',include
-	   ',prefix
-	   (make ,type-template)
-	   ',slots))
+       (eval-when (:execute :compile-toplevel :load-toplevel) 
+	       (install-struct-type
+	        ',name
+	        ',include
+	        ',prefix
+	        (make ,type-template)
+	        ',slots))
        (define-struct-aux ,name ,include ,prefix ,predicate))))
 
 
@@ -396,57 +397,57 @@
 
 (defmacro define-struct-aux (name include prefix predicate)
   (let* ((td           (lookup-type name))
-	 (slots        (td-slots td))
-	 (local-slots  (td-%local-slots td))
-	 (bit-slots    (remove-if-not #'sd-%bit slots)))
+	       (slots        (td-slots td))
+	       (local-slots  (td-%local-slots td))
+	       (bit-slots    (remove-if-not #'sd-%bit slots)))
     `(progn
        ;; Make the struct definition.
        ;; *** could put the type descriptor for the default in a
        ;; *** global variable; it might speed up reference.
        (defstruct (,name
-		    (:include ,include
-			      (type-descriptor (lookup-type ',name)))
-		    (:conc-name ,prefix)
-		    ;; Disable the default keyword constructor.
-		    ;; If you do this in AKCL, it will complain about
-		    ;; the BOA constructor.  Bogus!!!
-		    ;; If you do this in WCL, it will just quietly ignore
-		    ;; the BOA.
-		    #-(or cmu akcl wcl) (:constructor nil)
-		    (:constructor ,(td-%constructor td) ,(make-boa-args slots))
-		    (:predicate ,predicate)
-		    (:copier    nil))
-	 ,@(mapcar
-	    #'(lambda (s)
-		`(,(sd-name s) ,(sd-default s)
-		  ;; CMU common lisp initializes &aux boa constructor
-		  ;; slots to NIL instead of leaving them uninitialized,
-		  ;; and then complains if this doesn't match the declared
-		  ;; slot type.  I think this is a bug, not a feature, but
-		  ;; here's a workaround for it.
-		  :type
-		  #+cmu ,(if (sd-%uninitialized? s)
-			     `(or ,(sd-type s) null)
-			     (sd-type s))
-		  #-cmu ,(sd-type s)
-	          ;; Can make slots read-only only if a setf-er is not 
-		  ;; required by MAKE.
-		  :read-only ,(and (sd-%read-only? s) (sd-%required? s))))
-	    local-slots))
+		               (:include ,include
+			              (type-descriptor (lookup-type ',name)))
+		               (:conc-name ,prefix)
+		               ;; Disable the default keyword constructor.
+		               ;; If you do this in AKCL, it will complain about
+		               ;; the BOA constructor.  Bogus!!!
+		               ;; If you do this in WCL, it will just quietly ignore
+		               ;; the BOA.
+		               #-(or cmu akcl wcl sbcl) (:constructor nil)
+		               (:constructor ,(td-%constructor td) ,(make-boa-args slots))
+		               (:predicate ,predicate)
+		               (:copier    nil))
+	       ,@(mapcar
+	          #'(lambda (s)
+		            `(,(sd-name s) ,(sd-default s)
+		              ;; CMU common lisp initializes &aux boa constructor
+		              ;; slots to NIL instead of leaving them uninitialized,
+		              ;; and then complains if this doesn't match the declared
+		              ;; slot type.  I think this is a bug, not a feature, but
+		              ;; here's a workaround for it.
+		              :type
+		              #+cmu ,(if (sd-%uninitialized? s)
+			                       `(or ,(sd-type s) null)
+			                       (sd-type s))
+		              #-cmu ,(sd-type s)
+	                ;; Can make slots read-only only if a setf-er is not 
+		              ;; required by MAKE.
+		              :read-only ,(and (sd-%read-only? s) (sd-%required? s))))
+	          local-slots))
        ;; Make accessor functions for bit slots.
        ,@(mapcar
-	  #'(lambda (s)
-	      (let ((place  (symbol-append prefix (sd-name s)))
-		    (getter (bit-slot-getter (sd-%bit s)))
-		    (setter (bit-slot-setter (sd-%bit s))))
-		`(progn
-		   (mumble::define-integrable (,place x) (,getter x))
-		   ,@(unless (sd-%read-only? s)
-		       `((mumble::define-setf ,place ,setter))))
-		))
-	  bit-slots)
-	 ',name)
-      ))
+	        #'(lambda (s)
+	            (let ((place  (symbol-append prefix (sd-name s)))
+		                (getter (bit-slot-getter (sd-%bit s)))
+		                (setter (bit-slot-setter (sd-%bit s))))
+		            `(progn
+		               (mumble::define-integrable (,place x) (,getter x))
+		               ,@(unless (sd-%read-only? s)
+		                   `((mumble::define-setf ,place ,setter))))
+		            ))
+	        bit-slots)
+	     ',name)
+    ))
 
 
 

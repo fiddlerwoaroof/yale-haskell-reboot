@@ -6,7 +6,7 @@
 
 
 (define-compilation-unit prec
-  (source-filename "$Y2/prec/")
+  (source-filename "prec/")
   (require ast haskell-utils)
   (unit scope
 	(source-filename "scope.scm"))

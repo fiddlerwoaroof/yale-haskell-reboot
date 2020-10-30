@@ -4,7 +4,7 @@
 ;;; used in the compiler.
 
 (define-compilation-unit global
-  (source-filename "$Y2/top/")
+  (source-filename "top/")
   (require ast)
   (unit has-utils
     (source-filename "has-utils.scm"))
@@ -28,7 +28,7 @@
 ;;; These files do not need to be required by other units  
 
 (define-compilation-unit top-level
-  (source-filename "$Y2/top/")
+  (source-filename "top/")
   (require global)
   (unit phases
     (source-filename "phases.scm"))

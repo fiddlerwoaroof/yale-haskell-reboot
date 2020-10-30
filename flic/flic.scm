@@ -6,7 +6,7 @@
 
 
 (define-compilation-unit flic
-  (source-filename "$Y2/flic/")
+  (source-filename "flic/")
   (unit flic-td
 	(source-filename "flic-td.scm"))
   (unit flic-structs

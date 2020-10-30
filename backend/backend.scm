@@ -6,7 +6,7 @@
 
 
 (define-compilation-unit backend
-  (source-filename "$Y2/backend/")
+  (source-filename "backend/")
   (require flic)
   (unit optimize
 	(source-filename "optimize.scm"))

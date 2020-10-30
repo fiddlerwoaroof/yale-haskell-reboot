@@ -17,13 +17,13 @@
 ;;; It doesn't matter if this ends up loading source because we'll compile
 ;;; and reload it below.  
 
-(load "$Y2/support/compile.scm")
+(load "support/compile.scm")
 
 
 ;;; Define a real compilation unit for shared support files.
 
 (define-compilation-unit support
-  (source-filename "$Y2/support/")
+  (source-filename "support/")
   (unit compile (source-filename "compile.scm"))
   (unit utils   (source-filename "utils.scm"))
   (unit xp

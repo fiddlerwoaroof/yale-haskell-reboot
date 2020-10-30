@@ -6,7 +6,7 @@
 
 
 (define-compilation-unit depend
-  (source-filename "$Y2/depend/")
+  (source-filename "depend/")
   (require ast haskell-utils)
   (unit dependency-analysis
 	(source-filename "dependency-analysis.scm")))

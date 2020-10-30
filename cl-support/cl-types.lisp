@@ -3,7 +3,7 @@
 ;;; author :  Sandra Loosemore
 ;;; date   :  5 Oct 1992
 ;;;
-
+(in-package :mumble-implementation)
 
 ;;; Export CL symbols for type names
 
@@ -11,11 +11,11 @@
 
 #+lucid
 (define-mumble-type mumble::procedure () 'system::procedure)
-#+(or cmu akcl allegro mcl lispworks)
+#+(or cmu akcl allegro mcl lispworks sbcl)
 (define-mumble-type mumble::procedure () 'function)
 #+wcl
 (define-mumble-type mumble::procedure () 'lisp:procedure)
-#-(or lucid cmu akcl allegro mcl lispworks wcl)
+#-(or lucid cmu akcl allegro mcl lispworks wcl sbcl)
 (missing-mumble-definition procedure)
 
 (define-mumble-type mumble::pair () 'cons)

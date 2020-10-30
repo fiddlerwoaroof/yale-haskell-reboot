@@ -1,7 +1,7 @@
 ;;; csys.scm -- compilation unit definition for the compilation system
 
 (define-compilation-unit csys
-  (source-filename "$Y2/csys/")
+  (source-filename "csys/")
   (require global runtime flic)
   (unit cache-structs
     (source-filename "cache-structs.scm"))

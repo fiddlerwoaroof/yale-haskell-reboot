@@ -1,5 +1,5 @@
 (define-compilation-unit type
-  (source-filename "$Y2/type/")
+  (source-filename "type/")
   (require ast haskell-utils)
   (unit type-macros
         (source-filename "type-macros.scm"))

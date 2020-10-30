@@ -5,7 +5,7 @@
 ;;;
 
 (define-compilation-unit parser
-  (source-filename "$Y2/parser/")
+  (source-filename "parser/")
   (require global)
   (unit parser-globals
     (source-filename "parser-globals.scm"))

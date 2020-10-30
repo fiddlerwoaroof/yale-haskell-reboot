@@ -1,5 +1,5 @@
 (define-compilation-unit ie
-  (source-filename "$Y2/import-export/")
+  (source-filename "import-export/")
   (require global)
   (unit ie-utils
     (source-filename "ie-utils"))

@@ -1,7 +1,7 @@
 ;;; csys.scm -- compilation unit definition for the compilation system
 
 (define-compilation-unit command-interface
-  (source-filename "$Y2/command-interface/")
+  (source-filename "command-interface/")
   (require global)
   (unit command
     (source-filename "command.scm"))

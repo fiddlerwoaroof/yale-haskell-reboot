@@ -6,13 +6,13 @@
 ;;;
 
 (define-compilation-unit printer-support
-  (source-filename "$Y2/printers/")
+  (source-filename "printers/")
   (require global)
   (unit util
 	(source-filename "util.scm")))
 
 (define-compilation-unit printers
-  (source-filename "$Y2/printers/")
+  (source-filename "printers/")
   (require printer-support)
   (unit print-exps
 	(source-filename "print-exps.scm"))

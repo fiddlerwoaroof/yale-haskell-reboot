@@ -6,7 +6,7 @@
 
 
 (define-compilation-unit ast
-  (source-filename "$Y2/ast/")
+  (source-filename "ast/")
   (unit ast-td
     (source-filename "ast-td"))
   (unit modules
